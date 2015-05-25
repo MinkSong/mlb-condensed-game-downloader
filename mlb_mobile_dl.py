@@ -4,7 +4,8 @@ import os
 import subprocess
 
 
-teams_to_dl = ['oak', 'sfn', 'tor']
+teams_to_dl = ['sfn', 'oak']
+dates_to_dl = [] #['2012/05/15']
 
 # what is the number of most recent games you'd like to download per team?
 games_per_team_to_dl = 1
@@ -36,6 +37,15 @@ def xmlFilesInFolder(folder_path):
 # download a file via rtmp
 def download_rtmp_url(rtmp_url, output_file):
 	subprocess.call(["rtmpdump", "-r", rtmp_url, "-o", output_file])
+	
+# extract the date from a rtmp xml
+def extractDateFromUrl(url):
+	date_match = re.search("[0-9]{4}/[0-9]{2}/[0-9]{2}", url)
+	if date_match != None:
+		date = date_match.group(0)
+		return date
+
+	return None
 			
 
 local_folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), folder))
@@ -102,6 +112,20 @@ for file in found_xml_files:
 rtmp_urls.sort()
 rtmp_urls.reverse()
 
+game_urls_correct_date = []
+
+# remove game dates that aren't correct
+if len(dates_to_dl) > 0:
+	for url in rtmp_urls:
+		thisDate = extractDateFromUrl(url)
+		if thisDate in dates_to_dl:
+			game_urls_correct_date.append(url)
+else:
+	game_urls_correct_date = rtmp_urls
+
+print game_urls_correct_date
+			
+
 # make an output path for downloaded games
 output_folder =  os.path.abspath(os.path.join(os.path.dirname(__file__), "condensed_games"))
 if False == os.path.isdir(output_folder):
@@ -111,7 +135,7 @@ game_urls_to_dl = []
 
 for team in teams_to_dl:
 	counter = 0
-	for url in rtmp_urls:
+	for url in game_urls_correct_date:
 		if team in url:
 			found_team = True
 			game_urls_to_dl.append(url)
@@ -126,10 +150,8 @@ for url in game_urls_to_dl:
 	if team_match != None:
 		team_name = team_match.group(0)
 		
-	date = "YYYY/MM/DD"
-	date_match = re.search("[0-9]{4}/[0-9]{2}/[0-9]{2}", url)
-	if date_match != None:
-		date = date_match.group(0)
+	date = extractDateFromUrl(url)
+	if date != None:
 		date = date.replace("/", "")
 		
 	filename = date + team_name + "condensed" + os.path.splitext(url)[1]
@@ -139,5 +161,7 @@ for url in game_urls_to_dl:
 		download_rtmp_url(url, output_file)
 	else:
 		print "skipping:", url, "because it's alredy on disk."
+		
+print "Done"
 		
 	
