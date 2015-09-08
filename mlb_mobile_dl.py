@@ -4,8 +4,24 @@ import os
 import subprocess
 
 
-teams_to_dl = ['sfn', 'oak']
-dates_to_dl = [] #['2012/05/15']
+team_dict = {
+	'mets': 'nyn',
+	'yankees': 'nya',
+	'padres' : 'sdn',
+	'angels' : 'laa',
+	'athletics' : 'oak',
+	'astros' : 'hou',
+	'giants' : 'sfn'
+	
+}
+
+teams_to_dl = []
+
+teams_to_dl.append('sfn')
+teams_to_dl.append('oak')
+teams_to_dl.append('hou')
+
+dates_to_dl = []
 
 # what is the number of most recent games you'd like to download per team?
 games_per_team_to_dl = 1
@@ -123,8 +139,6 @@ if len(dates_to_dl) > 0:
 else:
 	game_urls_correct_date = rtmp_urls
 
-print game_urls_correct_date
-			
 
 # make an output path for downloaded games
 output_folder =  os.path.abspath(os.path.join(os.path.dirname(__file__), "condensed_games"))
@@ -144,7 +158,7 @@ for team in teams_to_dl:
 				break
 		
 for url in game_urls_to_dl:
-	
+	print url
 	team_name = "_unknown_"
 	team_match = re.search("_[a-z]*_", url)
 	if team_match != None:
