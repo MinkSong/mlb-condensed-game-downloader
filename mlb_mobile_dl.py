@@ -20,11 +20,13 @@ teams_to_dl = []
 teams_to_dl.append('sfn')
 teams_to_dl.append('oak')
 teams_to_dl.append('hou')
+teams_to_dl.append('tor')
+teams_to_dl.append('tex')
 
 dates_to_dl = []
 
 # what is the number of most recent games you'd like to download per team?
-games_per_team_to_dl = 1
+games_per_team_to_dl = 2
 
 # where to look for our xml files online
 mlb_root = "http://gd2.mlb.com/components/game/mlb/year_2015/"
