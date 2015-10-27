@@ -1,4 +1,8 @@
 import csv
+import pickle
+
+from mlb_strings import *
+from mlb_paths import *
 
 
 def LIND_score_for_game_dict(gameDict):
@@ -12,18 +16,11 @@ def LIND_score_for_game_dict(gameDict):
 	score += float(gameDict['HR']) / 4.5
 	
 	return score
-	
-def game_key_for_dict(gameDict):
-	
-	date = gameDict['Date']
-	teams = gameDict['Tm'] + '-' + gameDict['Opp']
-	game_key = date + ' ' + teams
-	return game_key
+
 	
 
 # first, create a dictionary of the batting games, using the date and teams as the key
 batting_games = {}
-batting_file = 'raw_csv/bat_wpa.csv'
 with open(batting_file) as csvfile: 
 	reader = csv.DictReader(csvfile)
 	
@@ -33,7 +30,7 @@ with open(batting_file) as csvfile:
 		batting_games[key] = score
 		
 pitching_games = {}
-pitching_file = 'raw_csv/pit_wpa.csv'
+
 with open(pitching_file) as csvfile: 
 	reader = csv.DictReader(csvfile)
 	
@@ -54,11 +51,29 @@ for game_key, pitching_score in pitching_games.iteritems():
 		all_games[game_key] = pitching_score
 		
 	
+# read the game dicts into memory
+
+
+condensed_url_dict = pickle.load(open(condensed_url_dict_filepath, "r"))
+game_id_dict = pickle.load(open(game_id_dict_filepath, "r"))
+
+print game_id_dict
+
 sorted_by_score = sorted(all_games, key=all_games.get, reverse=True)
-for i in range (0, 30):
+for i in range (0, 50):
 	game_key = sorted_by_score[i]
 	score = all_games[game_key]
-	print i, "-", score, game_key
+
+	condensed_url = "NO CONDENSED GAME URL"
+	if game_key in condensed_url_dict:
+		condensed_url = condensed_url_dict[game_key]
+		
+	game_id = "GAME_ID"
+	if game_key in game_id_dict:
+		game_id = game_id_dict[game_key]
+		
+		
+	print i, "-", score, game_key, condensed_url, game_id
 
 		
 

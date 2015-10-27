@@ -3,6 +3,9 @@ import re
 import os
 import subprocess
 
+from mlb_paths import *
+from mlb_strings import *
+
 
 team_dict = {
 	'mets': 'nyn',
@@ -11,7 +14,7 @@ team_dict = {
 	'angels' : 'laa',
 	'athletics' : 'oak',
 	'astros' : 'hou',
-	'giants' : 'sfn'
+	'giants' : 'sfn',
 	
 }
 
@@ -28,11 +31,11 @@ dates_to_dl = []
 # what is the number of most recent games you'd like to download per team?
 games_per_team_to_dl = 2
 
-# where to look for our xml files online
-mlb_root = "http://gd2.mlb.com/components/game/mlb/year_2015/"
-folder = "mobile"
-mlb_path = os.path.join(mlb_root, folder)
+
 print "mlb_path:", mlb_path
+
+game_id_dict = {}
+condensed_game_dict = {}
 
 
 # we are looking for xml files that look like 123456.xml
@@ -56,25 +59,18 @@ def xmlFilesInFolder(folder_path):
 def download_rtmp_url(rtmp_url, output_file):
 	subprocess.call(["rtmpdump", "-r", rtmp_url, "-o", output_file])
 	
-# extract the date from a rtmp xml
-def extractDateFromUrl(url):
-	date_match = re.search("[0-9]{4}/[0-9]{2}/[0-9]{2}", url)
-	if date_match != None:
-		date = date_match.group(0)
-		return date
 
-	return None
+	return team_name
 			
 
-local_folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), folder))
-print "local_folder_path:", local_folder_path
-if False == os.path.isdir(local_folder_path):
-	os.mkdir(local_folder_path)
+print "game_data_folder:", game_data_folder
+if False == os.path.isdir(game_data_folder):
+	os.mkdir(game_data_folder)
 
 	
 result = urllib2.urlopen(mlb_root + folder).read()
 
-found_xml_files = xmlFilesInFolder(local_folder_path)
+found_xml_files = xmlFilesInFolder(game_data_folder)
 all_xml_files = set()
 for line in result.split('\n'):
 	match = re.search(xml_reg_exp, line)
@@ -96,7 +92,7 @@ for file in xml_files_to_dl:
 	xml_data = urllib2.urlopen(file_url).read()
     
 	# Open our local file for writing
-	local_file_path = os.path.join(local_folder_path, file)
+	local_file_path = os.path.join(game_data_folder, file)
 	print "local file:", local_file_path
 	
 	local_file = open(local_file_path, "wb")
@@ -113,11 +109,10 @@ print "xml files up to date"
 rtmp_urls = []
 
 # go through the xml files and find the rtmp:// link to the condensed game
-found_xml_files = xmlFilesInFolder(local_folder_path)
+found_xml_files = xmlFilesInFolder(game_data_folder)
 for file in found_xml_files:
-	file_path = os.path.join(local_folder_path, file)
+	file_path = os.path.join(game_data_folder, file)
 	xml_data = open(file_path, "r").read()
-	
 	
 	rtmp_reg_ex = "rtmp://.*.mp4"
 	match = re.search(rtmp_reg_ex, xml_data)
@@ -125,6 +120,11 @@ for file in found_xml_files:
 		rtmp_url = match.group(0)
 		rtmp_urls.append(rtmp_url)
 		
+		game_key = game_key_from_rtmp_url(rtmp_url)
+		
+		game_id_dict[game_key] = file
+		condensed_game_dict[game_key] = rtmp_url
+
 # sort by newest descending. This is super easy because the date is in yyyy/mm/dd format, 
 # so all we have to do is sort the text and reverse it.
 rtmp_urls.sort()
@@ -161,11 +161,7 @@ for team in teams_to_dl:
 		
 for url in game_urls_to_dl:
 	print url
-	team_name = "_unknown_"
-	team_match = re.search("_[a-z]*_", url)
-	if team_match != None:
-		team_name = team_match.group(0)
-		
+	team_name = extractTeamFromUrl(url)
 	date = extractDateFromUrl(url)
 	if date != None:
 		date = date.replace("/", "")
@@ -174,10 +170,19 @@ for url in game_urls_to_dl:
 	output_file = os.path.join(output_folder, filename)
 	if False == os.path.exists(output_file):
 		print "about to dl:", url, "to:", output_file
-		download_rtmp_url(url, output_file)
+		#download_rtmp_url(url, output_file)
 	else:
 		print "skipping:", url, "because it's alredy on disk."
 		
 print "Done"
+
+import pickle
+local_file = open(game_id_dict_filepath, "wb")
+pickle.dump(game_id_dict, local_file)
+local_file.close()
+
+local_file = open(condensed_url_dict_filepath, "wb")
+pickle.dump(condensed_game_dict, local_file)
+local_file.close()
 		
 	
