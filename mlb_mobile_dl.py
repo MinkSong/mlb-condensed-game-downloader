@@ -114,16 +114,19 @@ for file in found_xml_files:
 	file_path = os.path.join(game_data_folder, file)
 	xml_data = open(file_path, "r").read()
 	
-	rtmp_reg_ex = "rtmp://.*.mp4"
-	match = re.search(rtmp_reg_ex, xml_data)
-	if match != None:
-		rtmp_url = match.group(0)
-		rtmp_urls.append(rtmp_url)
-		
-		game_key = game_key_from_rtmp_url(rtmp_url)
-		
+	game_date = find_game_date_from_xml_string(xml_data)
+	media_url = find_any_media_url_in_xml_string(xml_data)
+	
+	if game_date != None and media_url != None:
+
+		game_key = game_key_from_xml_data(xml_data)
 		game_id_dict[game_key] = file
-		condensed_game_dict[game_key] = rtmp_url
+		
+		rtmp_url = find_rtmp_url_in_xml_string(xml_data)
+		if rtmp_url != None:
+			condensed_game_dict[game_key] = rtmp_url
+			rtmp_urls.append(rtmp_url)
+		
 
 # sort by newest descending. This is super easy because the date is in yyyy/mm/dd format, 
 # so all we have to do is sort the text and reverse it.

@@ -57,12 +57,29 @@ for game_key, pitching_score in pitching_games.iteritems():
 condensed_url_dict = pickle.load(open(condensed_url_dict_filepath, "r"))
 game_id_dict = pickle.load(open(game_id_dict_filepath, "r"))
 
-print game_id_dict
+#print game_id_dict
 
 sorted_by_score = sorted(all_games, key=all_games.get, reverse=True)
-for i in range (0, 50):
+teams_represented = set()
+i = 0
+while i < 30:
 	game_key = sorted_by_score[i]
 	score = all_games[game_key]
+	
+	date_url = None
+
+	game_date = game_key[0:10]
+	ymd = game_date.split("-")
+	url_date = ymd[1] + "/" + ymd[2] + "/" + ymd[0]
+	
+	date_url = "http://mlb.mlb.com/mediacenter/index.jsp?c_id=mlb#date=" + url_date
+	
+	team1 = game_key[11:14]
+	team2 = game_key[15:18]
+	
+	teams_represented.add(team1)
+	teams_represented.add(team2)
+	teams = team1 + "-" + team2
 
 	condensed_url = "NO CONDENSED GAME URL"
 	if game_key in condensed_url_dict:
@@ -72,9 +89,12 @@ for i in range (0, 50):
 	if game_key in game_id_dict:
 		game_id = game_id_dict[game_key]
 		
+		game_id, ext = os.path.splitext(game_id)
+		game_url = "http://m.mlb.com/tv/e14-" + game_id + "-" + game_date
 		
-	print i, "-", score, game_key, condensed_url, game_id
-
+	print "<tr><td align=\"left\"><a href=\"%s\">%s</a></td> <td align=\"left\"><a href=\"%s\">%s</a></td> <td align=\"center\">%.2f</td></tr>" % (date_url, game_date, game_url, teams, score)
+	
+	i += 1
 		
 
 

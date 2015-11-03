@@ -45,6 +45,8 @@ def team_key(team):
 		key = "SDP"
 	elif team == "WSN":
 		key = "WAS"
+	elif team == "LAA":
+		key = "ANA"
 	
 	
 	return key
@@ -54,18 +56,6 @@ def team_string_with_teams(team1, team2):
 	return teams[0] + "-" + teams[1]
 		
 		
-def game_key_from_rtmp_url(url):
-	date = extractDateFromUrl(url)
-	date = date.replace("/", "-")
-	
-	teams = extractTeamFromUrl(url)
-	teamL = teams[1:4].upper()
-	teamR = teams[4:7].upper()
-	
-	team_string = team_string_with_teams(teamL, teamR)
-	
-	return date + " " + team_string
-	
 	
 def game_key_for_dict(gameDict):
 	
@@ -77,3 +67,59 @@ def game_key_for_dict(gameDict):
 	teams = team_string_with_teams(team1, team2)
 	game_key = date + ' ' + teams
 	return game_key
+	
+def find_game_date_from_xml_string(xml_string):
+	date = None
+	
+	date_regexp = "[0-9]{1,2}\/[0-9]{1,2}\/[0-9]{1,2}"
+	match = re.search(date_regexp, xml_string)
+	
+	if match != None:
+		date = match.group(0)
+		
+	return date
+	
+def find_rtmp_url_in_xml_string(xml_string):
+	
+	url = None
+	
+	rtmp_reg_ex = "rtmp://.*.mp4"
+	match = re.search(rtmp_reg_ex, xml_string)
+	
+	if match != None:
+		url = match.group(0)
+	
+	return url
+	
+def find_any_media_url_in_xml_string(xml_string):
+	
+	url = None
+	
+	exp = "http://.*_[a-z]{6}_.*.mp4"
+	match = re.search(exp, xml_string)
+	
+	if match != None:
+		url = match.group(0)
+	
+	return url
+	
+def game_key_from_xml_data(xml_data):
+	
+	date = find_game_date_from_xml_string(xml_data)
+	date_components = date.split("/")
+	
+	month = int(date_components[0])
+	day = int(date_components[1])
+	year = 2000 + int(date_components[2])
+	
+	key_date = "%02d-%02d-%02d" % (year, month, day)
+	
+	url = find_any_media_url_in_xml_string(xml_data)
+	print url
+	teams = extractTeamFromUrl(url)
+	teamL = teams[1:4].upper()
+	teamR = teams[4:7].upper()
+	
+	team_string = team_string_with_teams(teamL, teamR)
+	
+	return key_date + " " + team_string
