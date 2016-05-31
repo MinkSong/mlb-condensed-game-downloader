@@ -63,7 +63,7 @@ sorted_by_score = sorted(all_games, key=all_games.get, reverse=True)
 teams_represented = set()
 winning_teams = set()
 i = 0
-while i < 10:
+while len(teams_represented) < 30:
     game_key = sorted_by_score[i]
     score = all_games[game_key]
 

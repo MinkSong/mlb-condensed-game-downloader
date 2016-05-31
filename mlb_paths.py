@@ -1,7 +1,7 @@
 import os
 
 # where to look for our xml files online
-mlb_root = "http://gd2.mlb.com/components/game/mlb/year_2015/"
+mlb_root = "http://gd2.mlb.com/components/game/mlb/year_2016/"
 folder = "mobile"
 mlb_path = os.path.join(mlb_root, folder)
 

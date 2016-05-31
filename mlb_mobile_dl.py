@@ -6,25 +6,10 @@ import subprocess
 from mlb_paths import *
 from mlb_strings import *
 
-
-team_dict = {
-	'mets': 'nyn',
-	'yankees': 'nya',
-	'padres' : 'sdn',
-	'angels' : 'laa',
-	'athletics' : 'oak',
-	'astros' : 'hou',
-	'giants' : 'sfn',
-	
-}
-
 teams_to_dl = []
 
 teams_to_dl.append('sfn')
 teams_to_dl.append('oak')
-teams_to_dl.append('hou')
-teams_to_dl.append('tor')
-teams_to_dl.append('tex')
 
 dates_to_dl = []
 
@@ -133,6 +118,7 @@ for file in found_xml_files:
 rtmp_urls.sort()
 rtmp_urls.reverse()
 
+
 game_urls_correct_date = []
 
 # remove game dates that aren't correct
@@ -163,7 +149,7 @@ for team in teams_to_dl:
 				break
 		
 for url in game_urls_to_dl:
-	print url
+	#print url
 	team_name = extractTeamFromUrl(url)
 	date = extractDateFromUrl(url)
 	if date != None:
@@ -173,11 +159,15 @@ for url in game_urls_to_dl:
 	output_file = os.path.join(output_folder, filename)
 	if False == os.path.exists(output_file):
 		print "about to dl:", url, "to:", output_file
-		#download_rtmp_url(url, output_file)
+		download_rtmp_url(url, output_file)
 	else:
 		print "skipping:", url, "because it's alredy on disk."
 		
 print "Done"
+
+
+
+
 
 import pickle
 local_file = open(game_id_dict_filepath, "wb")
