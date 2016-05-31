@@ -1,10 +1,11 @@
 import urllib2
 import re
 import os
-import subprocess
+import subprocess, pickle
 
 from mlb_paths import *
 from mlb_strings import *
+from parse_game_xml import *
 
 teams_to_dl = []
 
@@ -95,23 +96,58 @@ rtmp_urls = []
 
 # go through the xml files and find the rtmp:// link to the condensed game
 found_xml_files = xmlFilesInFolder(game_data_folder)
-for file in found_xml_files:
-	file_path = os.path.join(game_data_folder, file)
-	xml_data = open(file_path, "r").read()
-	
-	game_date = find_game_date_from_xml_string(xml_data)
-	media_url = find_any_media_url_in_xml_string(xml_data)
-	
-	if game_date != None and media_url != None:
 
-		game_key = game_key_from_xml_data(xml_data)
-		game_id_dict[game_key] = file
+games_file = "game_data/game_dict.p"
+
+games = {}
+
+local_file = open(games_file, "rb")
+if os.fstat(local_file.fileno()).st_size > 0:
+	games = pickle.load(local_file)
+local_file.close()
+
+for file in found_xml_files:
+	if file not in games:
 		
-		rtmp_url = find_rtmp_url_in_xml_string(xml_data)
-		if rtmp_url != None:
-			condensed_game_dict[game_key] = rtmp_url
-			rtmp_urls.append(rtmp_url)
+		game = parse_game_file(game_data_folder + '/' + file)
+		if game != None:
+			games[game["file"]] = game
+			local_file = open(games_file, "wb")
+			pickle.dump(games, local_file)
+			local_file.close()
+	
+#	file_path = os.path.join(game_data_folder, file)
+#	xml_data = open(file_path, "r").read()
+#	
+#	game_date = find_game_date_from_xml_string(xml_data)
+#	media_url = find_any_media_url_in_xml_string(xml_data)
+#	
+#	if game_date != None and media_url != None:
+#
+#		game_key = game_key_from_xml_data(xml_data)
+#		game_id_dict[game_key] = file
+#		
+#		rtmp_url = find_rtmp_url_in_xml_string(xml_data)
+#		if rtmp_url != None:
+#			condensed_game_dict[game_key] = rtmp_url
+#			rtmp_urls.append(rtmp_url)
 		
+
+local_file = open(games_file, "wb")
+pickle.dump(games, local_file)
+local_file.close()
+
+from operator import itemgetter
+sorted_games = sorted(games.values(), key=itemgetter('sortable_date'), reverse=True)
+
+please_dl = set("SF", "OAK")
+for game in sorted_games:
+	should_dl = False
+	home_team, away_team = game["home_team"], game["away_team"]
+	if home_team in please_dl:
+		please_dl.remove(home_team)
+		should_dl = True		
+	
 
 # sort by newest descending. This is super easy because the date is in yyyy/mm/dd format, 
 # so all we have to do is sort the text and reverse it.
