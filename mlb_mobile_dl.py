@@ -3,19 +3,23 @@ import re
 import os
 import subprocess, pickle
 
+from operator import itemgetter
+from collections import defaultdict
 from mlb_paths import *
 from mlb_strings import *
 from parse_game_xml import *
+from download_condensed_game import *
 
 teams_to_dl = []
 
-teams_to_dl.append('sfn')
-teams_to_dl.append('oak')
+teams_to_dl.append('SF')
+teams_to_dl.append('OAK')
+teams_to_dl.append('TOR')
 
 dates_to_dl = []
 
 # what is the number of most recent games you'd like to download per team?
-games_per_team_to_dl = 2
+games_per_team_to_dl = 1
 
 
 print "mlb_path:", mlb_path
@@ -97,24 +101,22 @@ rtmp_urls = []
 # go through the xml files and find the rtmp:// link to the condensed game
 found_xml_files = xmlFilesInFolder(game_data_folder)
 
-games_file = "game_data/game_dict.p"
 
+# try to read the game from the pickled file if we have one
 games = {}
-
-local_file = open(games_file, "rb")
+games_file = "game_data/game_dict.p"
+local_file = open(games_file, "wr+")
 if os.fstat(local_file.fileno()).st_size > 0:
 	games = pickle.load(local_file)
 local_file.close()
 
+# fill up the dictionary with everything we don't have already
 for file in found_xml_files:
 	if file not in games:
 		
 		game = parse_game_file(game_data_folder + '/' + file)
 		if game != None:
 			games[game["file"]] = game
-			local_file = open(games_file, "wb")
-			pickle.dump(games, local_file)
-			local_file.close()
 	
 #	file_path = os.path.join(game_data_folder, file)
 #	xml_data = open(file_path, "r").read()
@@ -131,73 +133,65 @@ for file in found_xml_files:
 #		if rtmp_url != None:
 #			condensed_game_dict[game_key] = rtmp_url
 #			rtmp_urls.append(rtmp_url)
-		
-
-local_file = open(games_file, "wb")
-pickle.dump(games, local_file)
-local_file.close()
-
-from operator import itemgetter
-sorted_games = sorted(games.values(), key=itemgetter('sortable_date'), reverse=True)
-
-please_dl = set("SF", "OAK")
-for game in sorted_games:
-	should_dl = False
-	home_team, away_team = game["home_team"], game["away_team"]
-	if home_team in please_dl:
-		please_dl.remove(home_team)
-		should_dl = True		
-	
 
 # sort by newest descending. This is super easy because the date is in yyyy/mm/dd format, 
 # so all we have to do is sort the text and reverse it.
-rtmp_urls.sort()
-rtmp_urls.reverse()
-
-
-game_urls_correct_date = []
-
-# remove game dates that aren't correct
-if len(dates_to_dl) > 0:
-	for url in rtmp_urls:
-		thisDate = extractDateFromUrl(url)
-		if thisDate in dates_to_dl:
-			game_urls_correct_date.append(url)
-else:
-	game_urls_correct_date = rtmp_urls
-
-
-# make an output path for downloaded games
-output_folder =  os.path.abspath(os.path.join(os.path.dirname(__file__), "condensed_games"))
-if False == os.path.isdir(output_folder):
-	os.mkdir(output_folder)
-	
-game_urls_to_dl = []
-
-for team in teams_to_dl:
-	counter = 0
-	for url in game_urls_correct_date:
-		if team in url:
-			found_team = True
-			game_urls_to_dl.append(url)
-			counter += 1
-			if counter >= games_per_team_to_dl:
-				break
+#rtmp_urls.sort()
+#rtmp_urls.reverse()
 		
-for url in game_urls_to_dl:
-	#print url
-	team_name = extractTeamFromUrl(url)
-	date = extractDateFromUrl(url)
-	if date != None:
-		date = date.replace("/", "")
-		
-	filename = date + team_name + "condensed" + os.path.splitext(url)[1]
-	output_file = os.path.join(output_folder, filename)
-	if False == os.path.exists(output_file):
-		print "about to dl:", url, "to:", output_file
-		download_rtmp_url(url, output_file)
+
+local_file = open(games_file, "w+")
+pickle.dump(games, local_file)
+local_file.close()
+
+sorted_games = sorted(games.values(), key=itemgetter('sortable_date'), reverse=True)
+download_games(sorted_games, teams_to_dl, games_per_team_to_dl)
+
+
+
+def download_rtmp_urls(rtmp_urls, teams_to_dl, games_per_team_to_dl):
+	game_urls_correct_date = []
+
+	# remove game dates that aren't correct
+	if len(dates_to_dl) > 0:
+		for url in rtmp_urls:
+			thisDate = extractDateFromUrl(url)
+			if thisDate in dates_to_dl:
+				game_urls_correct_date.append(url)
 	else:
-		print "skipping:", url, "because it's alredy on disk."
+		game_urls_correct_date = rtmp_urls
+
+	# make an output path for downloaded games
+	output_folder =  os.path.abspath(os.path.join(os.path.dirname(__file__), "condensed_games"))
+	if False == os.path.isdir(output_folder):
+		os.mkdir(output_folder)
+		
+	game_urls_to_dl = []
+
+	for team in teams_to_dl:
+		counter = 0
+		for url in game_urls_correct_date:
+			if team in url:
+				found_team = True
+				game_urls_to_dl.append(url)
+				counter += 1
+				if counter >= games_per_team_to_dl:
+					break
+			
+	for url in game_urls_to_dl:
+		#print url
+		team_name = extractTeamFromUrl(url)
+		date = extractDateFromUrl(url)
+		if date != None:
+			date = date.replace("/", "")
+			
+		filename = date + team_name + "condensed" + os.path.splitext(url)[1]
+		output_file = os.path.join(output_folder, filename)
+		if False == os.path.exists(output_file):
+			print "about to dl:", url, "to:", output_file
+			download_rtmp_url(url, output_file)
+		else:
+			print "skipping:", url, "because it's alredy on disk."
 		
 print "Done"
 

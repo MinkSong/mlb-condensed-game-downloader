@@ -83,12 +83,13 @@ def parse_game_file(game_file):
 						game["asset_url"] = child.text
 					
 					
-			print game
+			#print game
 			return game
 	
 	return None				
 				
 game_file = 'game_data/446867.xml'
 print parse_game_file(game_file)
+
 		
 		
