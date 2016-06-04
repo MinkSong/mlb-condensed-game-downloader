@@ -8,7 +8,7 @@ def download_from_m3u8_url(url, output_file):
 	subprocess.call(["ffmpeg", "-i", url, output_file])
 
 
-def download_games(sorted_games, teams_to_dl, games_per_team_to_dl):
+def download_games(sorted_games, teams_to_dl, games_per_team_to_dl, output_folder):
 	
 	team_game_count = defaultdict(int)
 	
@@ -25,7 +25,6 @@ def download_games(sorted_games, teams_to_dl, games_per_team_to_dl):
 			
 		if download_game:
 			
-			output_folder =  os.path.abspath(os.path.join(os.path.dirname(__file__), "condensed_games"))
 			if False == os.path.isdir(output_folder):
 				os.mkdir(output_folder)
 				

@@ -15,6 +15,7 @@ teams_to_dl = []
 teams_to_dl.append('SF')
 teams_to_dl.append('OAK')
 teams_to_dl.append('TOR')
+teams_to_dl.append('SEA')
 
 dates_to_dl = []
 
@@ -48,14 +49,16 @@ def xmlFilesInFolder(folder_path):
 # download a file via rtmp
 def download_rtmp_url(rtmp_url, output_file):
 	subprocess.call(["rtmpdump", "-r", rtmp_url, "-o", output_file])
-	
-
 	return team_name
 			
 
 print "game_data_folder:", game_data_folder
 if False == os.path.isdir(game_data_folder):
 	os.mkdir(game_data_folder)
+
+print "condensed games folder:", condensed_games_folder
+if False == os.path.isdir(condensed_games_folder):
+	os.mkdir(condensed_games_folder)
 
 	
 result = urllib2.urlopen(mlb_root + folder).read()
@@ -104,7 +107,7 @@ found_xml_files = xmlFilesInFolder(game_data_folder)
 
 # try to read the game from the pickled file if we have one
 games = {}
-games_file = "game_data/game_dict.p"
+games_file = os.path.join(game_data_folder, "game_dict.p")
 local_file = open(games_file, "wr+")
 if os.fstat(local_file.fileno()).st_size > 0:
 	games = pickle.load(local_file)
@@ -145,7 +148,7 @@ pickle.dump(games, local_file)
 local_file.close()
 
 sorted_games = sorted(games.values(), key=itemgetter('sortable_date'), reverse=True)
-download_games(sorted_games, teams_to_dl, games_per_team_to_dl)
+download_games(sorted_games, teams_to_dl, games_per_team_to_dl, condensed_games_folder)
 
 
 

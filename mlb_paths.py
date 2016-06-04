@@ -8,6 +8,8 @@ mlb_path = os.path.join(mlb_root, folder)
 # game data folder
 game_data_folder = os.path.join(os.path.dirname(__file__), "game_data")
 
+condensed_games_folder = os.path.join(os.path.dirname(__file__), "condensed_games")
+
 
 game_id_dict_filepath = os.path.join(game_data_folder, "game_id_dict.p")
 condensed_url_dict_filepath = os.path.join(game_data_folder, "condensed_url_dict.p")

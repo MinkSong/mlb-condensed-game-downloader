@@ -52,7 +52,7 @@ def parse_game_file(game_file):
 			game["file"] = game_file.split("/")[-1]
 			for child in media:
 				if child.tag == "blurb":
-					print child.text
+					#print child.text
 					pieces = child.text.split(" ")
 					
 					date_pieces = pieces[0].split("/")
