@@ -82,14 +82,14 @@ def parse_game_file(game_file):
 				if child.tag == "url" and child.attrib["playback-scenario"] == "HTTP_CLOUD_WIRED":
 						game["asset_url"] = child.text
 					
-					
+			
 			#print game
 			return game
 	
 	return None				
 				
-game_file = 'game_data/446867.xml'
-print parse_game_file(game_file)
+#game_file = 'game_data/446867.xml'
+#print parse_game_file(game_file)
 
 		
 		

@@ -5,7 +5,7 @@ from collections import *
 
 def download_from_m3u8_url(url, output_file):
 	print "aboud to dl", url, "output:", output_file
-	subprocess.call(["ffmpeg", "-i", url, output_file])
+	subprocess.call(["/usr/local/bin/ffmpeg", "-i", url, output_file])
 
 
 def download_games(sorted_games, teams_to_dl, games_per_team_to_dl, output_folder):
@@ -28,10 +28,12 @@ def download_games(sorted_games, teams_to_dl, games_per_team_to_dl, output_folde
 			if False == os.path.isdir(output_folder):
 				os.mkdir(output_folder)
 				
-			filename = game["year"] + game["month"] + game["day"] + "_" + away_team + "@" + home_team + ".mp4"
+			filename = "%02d%02d%02d_%s@%s.mp4" % (int(game["year"]), int(game["month"]), int(game["day"]), away_team, home_team)
 			output_file = os.path.join(output_folder, filename)
-			
-			print "Downloading game", game
-			download_from_m3u8_url(game["asset_url"], output_file)
+			if os.path.exists(output_file):
+				print "Skipping", filename, "(found on disk)"
+			else:
+				print "Downloading game", filename
+				download_from_m3u8_url(game["asset_url"], output_file)
 			
 
