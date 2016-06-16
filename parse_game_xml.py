@@ -57,7 +57,7 @@ def parse_game_file(game_file):
 					
 					date_pieces = pieces[0].split("/")
 					if len(date_pieces) >= 3:
-						day, month, year = date_pieces
+						month, day, year = date_pieces
 						game["day"] = day
 						game["month"] = month
 						game["year"] = year
