@@ -14,8 +14,6 @@ teams_to_dl = []
 
 teams_to_dl.append('SF')
 teams_to_dl.append('OAK')
-teams_to_dl.append('TOR')
-teams_to_dl.append('SEA')
 
 dates_to_dl = []
 
@@ -23,7 +21,7 @@ dates_to_dl = []
 games_per_team_to_dl = 1
 
 
-print "mlb_path:", mlb_path
+print "mlb_mobile_path:", mlb_mobile_path
 
 game_id_dict = {}
 condensed_game_dict = {}
@@ -61,7 +59,7 @@ if False == os.path.isdir(condensed_games_folder):
 	os.mkdir(condensed_games_folder)
 
 	
-result = urllib2.urlopen(mlb_root + folder).read()
+result = urllib2.urlopen(mlb_mobile_path).read()
 
 found_xml_files = xmlFilesInFolder(game_data_folder)
 all_xml_files = set()
@@ -80,7 +78,7 @@ num_files_downloaded = 0
 print "Found", len(found_xml_files), "out of", len(all_xml_files), "xml files on disk"
 	
 for file in xml_files_to_dl:
-	file_url = os.path.join(mlb_path + "/" + file)
+	file_url = os.path.join(mlb_mobile_path + "/" + file)
 	print "file url:", file_url
 	xml_data = urllib2.urlopen(file_url).read()
     
