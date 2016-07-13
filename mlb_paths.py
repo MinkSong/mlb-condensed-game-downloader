@@ -14,6 +14,9 @@ condensed_games_folder = os.path.join(os.path.dirname(__file__), "condensed_game
 
 def game_dump_file_with_year(year):
 	return os.path.join(game_data_folder, "game_paths_" + str(year) + ".p")
+	
+def game_event_files_dir():
+	return os.path.join(game_data_folder, "game_events")
 
 
 # Baseball-Reference storage and data gathering

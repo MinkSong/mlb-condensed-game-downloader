@@ -1,4 +1,4 @@
-import urllib2
+import urllib, urllib2
 import re
 import os
 import pickle
@@ -47,6 +47,26 @@ def gameID_links_in_xml(xml):
 			gameIDs.append(game)
 			
 	return gameIDs
+	
+def cache_game_events_file(game_path):
+	if False == os.path.isdir(game_event_files_dir()):
+		os.mkdir(game_event_files_dir())
+		
+	game_events_url = os.path.join(game_path, "game_events.json")
+	game_filename = os.path.basename(game_path) + ".json"
+	dump_file_path = os.path.join(game_event_files_dir(), game_filename)
+	urllib.urlretrieve(game_events_url, dump_file_path)
+	
+
+def cached_game_event_ids():
+	game_ids = set()
+	files = [f for f in os.listdir(game_event_files_dir())]
+	for file in files:
+		if file.endswith(".json"):
+			game_id = os.path.splitext(file)[0]
+			game_ids.add(game_id)
+						
+	return game_ids
 
 def find_all_games_in_year(year):
 	'''
@@ -85,6 +105,14 @@ def find_all_games_in_year(year):
 		
 	return game_paths
 	
+def cache_event_files_for_year(year):
+	game_paths = load_cached_game_paths(2016)
+	cached_games = cached_game_event_ids()
+	for game in game_paths:
+		game_id = os.path.basename(game)
+		if game_id not in cached_games:
+			cache_game_events_file(game)
+	
 def dump_game_paths(game_paths, year):
 	'''
 	Given a list of game paths and a year, dump these to a cache file
@@ -107,5 +135,13 @@ def load_cached_game_paths(year):
 		dump_game_paths(all_games, year)
 		return all_games
 		
-#print load_cached_game_paths(2016)
+
+
+#files = [f for f in os.listdir(game_event_files_dir())]
+#for file in files:
+#	print file
+cache_event_files_for_year(2016)
+
+
+
 	
