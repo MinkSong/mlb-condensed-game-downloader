@@ -32,6 +32,8 @@ def team_from_number(number):
 		146: 'MIA',
 		147: 'NYY',
 		158: 'MIL',
+		159: 'ASA',
+		160: 'ASN',
 		
 		798: 'CUBA'
     }[int(number)]
